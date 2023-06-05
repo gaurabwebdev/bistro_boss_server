@@ -4,6 +4,7 @@ const port = process.env.PORT || 5000;
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 app.use(cors());
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // Middlewares
 app.use(express.json());
