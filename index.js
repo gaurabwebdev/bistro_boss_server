@@ -30,6 +30,11 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
+// Cart Amount Calculation
+const calculateCartAmount = (items) => {
+  return items * 100;
+};
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wqlyhsd.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -184,6 +189,21 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await cart.deleteOne(query);
       res.send(result);
+    });
+
+    // Create Payment Intent
+    app.post("/create-payment-content", async (req, res) => {
+      const { items } = req.body;
+      const paymentIntent = stripe.paymentIntent.create({
+        amount: calculateCartAmount(items),
+        currency: "usd",
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     // Send a ping to confirm a successful connection
