@@ -4,12 +4,11 @@ const port = process.env.PORT || 5000;
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 app.use(cors());
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-console.log(stripe);
 
 // Middlewares
 app.use(express.json());
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -194,9 +193,9 @@ async function run() {
 
     // Create Payment Intent
     app.post("/create-payment-content", verifyJWT, async (req, res) => {
-      const { items } = req.body;
-      const paymentIntent = stripe.paymentIntents.create({
-        amount: calculateCartAmount(items),
+      const { totalPrice } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: calculateCartAmount(totalPrice),
         currency: "usd",
         payment_method_types: ["card"],
       });
