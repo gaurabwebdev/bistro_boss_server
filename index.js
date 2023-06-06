@@ -8,7 +8,7 @@ app.use(cors());
 // Middlewares
 app.use(express.json());
 require("dotenv").config();
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const verifyJWT = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -29,6 +29,8 @@ const verifyJWT = (req, res, next) => {
     next();
   });
 };
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // Cart Amount Calculation
 const calculateCartAmount = (items) => {
@@ -56,6 +58,7 @@ async function run() {
     const menu = database.collection("menu");
     const reviews = database.collection("reviews");
     const cart = database.collection("cart");
+    const paymentConfirmation = database.collection("paymentConfirmation");
 
     app.get("/", (req, res) => {
       res.send("BISTRO-BOSS Is Here");
@@ -199,9 +202,17 @@ async function run() {
         currency: "usd",
         payment_method_types: ["card"],
       });
+      console.log(paymentIntent);
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
+    });
+
+    // Payment Record
+    app.post("/payment", async (req, res) => {
+      const { payment } = req.body;
+      const result = await paymentConfirmation.insertOne(payment);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
