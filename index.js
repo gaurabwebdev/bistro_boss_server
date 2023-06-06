@@ -5,6 +5,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 app.use(cors());
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+console.log(stripe);
 
 // Middlewares
 app.use(express.json());
@@ -192,14 +193,12 @@ async function run() {
     });
 
     // Create Payment Intent
-    app.post("/create-payment-content", async (req, res) => {
+    app.post("/create-payment-content", verifyJWT, async (req, res) => {
       const { items } = req.body;
-      const paymentIntent = stripe.paymentIntent.create({
+      const paymentIntent = stripe.paymentIntents.create({
         amount: calculateCartAmount(items),
         currency: "usd",
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        payment_method_types: ["card"],
       });
       res.send({
         clientSecret: paymentIntent.client_secret,
