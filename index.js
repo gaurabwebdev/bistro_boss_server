@@ -209,10 +209,16 @@ async function run() {
     });
 
     // Payment Record
-    app.post("/payment", async (req, res) => {
+    app.post("/payment", verifyJWT, async (req, res) => {
       const { payment } = req.body;
-      const result = await paymentConfirmation.insertOne(payment);
-      res.send(result);
+      const insertResult = await paymentConfirmation.insertOne(payment);
+
+      const query = {
+        _id: { $in: payment.cartProductsId?.map((id) => new ObjectId(id)) },
+      };
+      const deleteResult = await cart.deleteMany(query);
+
+      res.send({ insertResult, deleteResult });
     });
 
     // Send a ping to confirm a successful connection
